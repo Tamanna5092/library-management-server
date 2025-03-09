@@ -30,6 +30,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const booksCollection = client.db('bookVibe').collection('books')
+
+
+    app.get('/books', async (req, res)=> {
+        const result = await booksCollection.find().toArray()
+        res.send(result)
+    })
+
 
 
     // Send a ping to confirm a successful connection
