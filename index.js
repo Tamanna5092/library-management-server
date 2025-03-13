@@ -31,6 +31,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const booksCollection = client.db('bookVibe').collection('books')
+    const borrowBookCollection = client.db('bookVibe').collection('borrowBooks')
 
 
     app.get('/books', async (req, res)=> {
@@ -48,6 +49,17 @@ async function run() {
     app.post('/book', async (req, res)=> {
       const bookData = req.body
       const result = await booksCollection.insertOne(bookData)
+      res.send(result)
+    })
+
+    app.post('/borrow', async (req, res)=> {
+      const borrowData = req.body
+      const result = await borrowBookCollection.insertOne(borrowData)
+      res.send(result)
+    })
+
+    app.get('/borrows', async (req, res)=> {
+      const result = await borrowBookCollection.find().toArray()
       res.send(result)
     })
 
