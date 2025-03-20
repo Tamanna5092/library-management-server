@@ -52,8 +52,35 @@ async function run() {
       res.send(result)
     })
 
+    app.put('/book/:id', async (req, res)=> {
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+      const updatedData = req.body
+      const option = {upsert: true}
+      const updateBook = {
+        $set: {
+          ...updatedData
+        }
+      }
+      const result = await booksCollection.updateOne(query, updateBook, option)
+      res.send(result)
+    })
+
     app.post('/borrow', async (req, res)=> {
       const borrowData = req.body
+      const query = {
+        bookId: borrowData.bookId,
+        "userInfo.email": borrowData.userInfo.email
+      }
+
+      const alreadyBorrowed = await borrowBookCollection.findOne(query)
+      if(alreadyBorrowed){
+        return res
+          .status(400)
+          .send('Sorry you have already borrow this book!')
+      }
+
+
       const result = await borrowBookCollection.insertOne(borrowData)
       res.send(result)
     })
