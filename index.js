@@ -94,10 +94,16 @@ async function run() {
 
     app.patch('/borrow/:id', async (req, res)=> {
       const bookId = req.body.bookId
+      const email = req.body.email
       const borrowId = req.params.id
       const bookQuery = { _id: new ObjectId(bookId)}
 
+      const borrowFound = await borrowBookCollection.findOne({ _id: new ObjectId(borrowId)})
       const bookFound = await booksCollection.findOne(bookQuery)
+
+      if(borrowFound.userInfo.email !== email){
+        return res.status(403).send({ message: 'You are not authorized to return this book' });
+      }
 
     if(bookId === bookFound._id.toString()){
         const result = await borrowBookCollection.deleteOne({ _id: new ObjectId(borrowId)})
