@@ -68,7 +68,7 @@ async function run() {
 
     app.post('/borrow', async (req, res)=> {
       const borrowData = req.body
-      // console.log('borrow data', borrowData)
+      console.log('borrow data', borrowData)
       const query = {
         bookId: borrowData.bookId,
         "userInfo.email": borrowData.userInfo.email
@@ -88,15 +88,33 @@ async function run() {
 
       const bookQuery = { _id: new ObjectId(borrowData.bookId)}
       const updateBookCount = await booksCollection.updateOne(bookQuery, updateDoc)
-      // console.log('update book count',updateBookCount)
+      console.log('update book count',updateBookCount)
       res.send(result)
     })
 
+    app.patch('/borrow/:id', async (req, res)=> {
+      const bookId = req.body.bookId
+      const borrowId = req.params.id
+      const bookQuery = { _id: new ObjectId(bookId)}
+
+      const bookFound = await booksCollection.findOne(bookQuery)
+
+    if(bookId === bookFound._id.toString()){
+        const result = await borrowBookCollection.deleteOne({ _id: new ObjectId(borrowId)})
+        const updateBook = {
+          $inc: { quantity: 1}
+        }
+        const updateBookCount = await booksCollection.updateOne(bookQuery, updateBook)
+        console.log('update book count',updateBookCount)
+        res.send(result)
+      }
+    })
+
+    
     app.get('/borrows', async (req, res)=> {
       const result = await borrowBookCollection.find().toArray()
       res.send(result)
     })
-
 
 
 
