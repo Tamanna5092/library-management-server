@@ -45,6 +45,15 @@ async function run() {
         }).send({success: true})
     })
 
+    app.get('/logout', (req, res)=> {
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        maxAge: 0
+      }).send({success: true})
+    })
+
     app.get('/books', async (req, res)=> {
         const result = await booksCollection.find().toArray()
         res.send(result)
