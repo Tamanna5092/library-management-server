@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -8,7 +9,7 @@ const app = express()
 
 const corsOption = {
     origin: ['http://localhost:5173', 'http://localhost:5174'],
-    credential: true,
+    credentials: true,
     optionSuccessStatus: 200,
 }
 app.use(cors(corsOption))
@@ -33,6 +34,16 @@ async function run() {
     const booksCollection = client.db('bookVibe').collection('books')
     const borrowBookCollection = client.db('bookVibe').collection('borrowBooks')
 
+
+    app.post('/jwt', async (req, res)=> {
+        const user = req.body
+        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10h'})
+        res.cookie("token",token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+        }).send({success: true})
+    })
 
     app.get('/books', async (req, res)=> {
         const result = await booksCollection.find().toArray()
