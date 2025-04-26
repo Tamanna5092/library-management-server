@@ -9,7 +9,12 @@ const port = process.env.PORT || 5000;
 const app = express()
 
 const corsOption = {
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: [
+      'http://localhost:5173',
+       'http://localhost:5174',
+       "https://dimple-firebase-3af84.web.app",
+       "https://dimple-firebase-3af84.firebaseapp.com"
+      ],
     credentials: true,
     optionSuccessStatus: 200,
 }
@@ -85,7 +90,11 @@ async function run() {
         res.send(result)
     })
 
-    app.post('/book', async (req, res)=> {
+    app.post('/book', verifyToken, async (req, res)=> {
+      const adminEmail = 'julianalvarez19@gmail.com'
+      if(req.user.email !== adminEmail){
+        return res.status(403).send({message: 'forbidden access'})
+      }
       const bookData = req.body
       const result = await booksCollection.insertOne(bookData)
       res.send(result)
@@ -168,7 +177,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
