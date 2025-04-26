@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -14,9 +15,27 @@ const corsOption = {
 }
 app.use(cors(corsOption))
 app.use(express.json())
+app.use(cookieParser())
 
 
-
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token
+  if(!token){
+    return res.status(401).send({message: 'unauthorized access'})
+  }
+  if(token){
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=> {
+      if(err){
+        return res.status(403).send({message: 'unauthorized access'})
+      }
+      req.user = decoded
+      // console.log('decoded', decoded)
+      // console.log('req.user', req.user)
+    })
+    next()
+  }
+  console.log('token', token)
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.abrfq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -72,7 +91,11 @@ async function run() {
       res.send(result)
     })
 
-    app.put('/book/:id', async (req, res)=> {
+    app.put('/book/:id', verifyToken, async (req, res)=> {
+      const adminEmail = 'julianalvarez19@gmail.com'
+      if(req.user.email !== adminEmail){
+        return res.status(403).send({message: 'forbidden access'})
+      }
       const id = req.params.id
       const query = {_id: new ObjectId(id)}
       const updatedData = req.body
